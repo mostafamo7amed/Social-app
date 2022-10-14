@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:social_app/styles/icons_broken.dart';
 
 String uid = '';
 
@@ -17,27 +18,54 @@ Widget defaultFormField({
   onChange,
   bool isPassword = false,
 }) =>
-    TextFormField(
-      controller: controller,
-      obscureText: isPassword,
-      onTap: onTap,
-      onFieldSubmitted: onSubmit,
-      onChanged: onChange,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: prefix,
-        suffixIcon: suffix != null
-            ? IconButton(
-          icon: suffix,
-          onPressed: pressedShow,
-        )
-            : null,
-        border: const OutlineInputBorder(),
-        labelStyle: Theme.of(context).textTheme.bodyText1,
-        prefixIconColor: Colors.blue,
+    SizedBox(
+      height: 45,
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword,
+        onTap: onTap,
+        onFieldSubmitted: onSubmit,
+        onChanged: onChange,
+        decoration: InputDecoration(
+          label: Text(label,
+          style: Theme.of(context).textTheme.caption!.copyWith(
+            fontSize: 16,
+          ),
+          ),
+          prefixIcon: prefix,
+          suffixIcon: suffix != null
+              ? IconButton(
+                  icon: suffix,
+                  onPressed: pressedShow,
+                )
+              : null,
+          border: const OutlineInputBorder(
+          ),
+          labelStyle: Theme.of(context).textTheme.bodyText1,
+          prefixIconColor: Colors.blue,
+        ),
+        validator: validate,
+        keyboardType: type,
+        textAlignVertical: TextAlignVertical.top,
       ),
-      validator: validate,
-      keyboardType: type,
+    );
+
+PreferredSizeWidget defaultAppBar({
+  required BuildContext context,
+  String? title,
+  List<Widget>? actions,
+}) =>
+    AppBar(
+      titleSpacing: 0,
+      leading: IconButton(
+        padding: EdgeInsets.zero,
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        icon: const Icon(IconBroken.Arrow___Left_2),
+      ),
+      title: Text(title!),
+      actions: actions,
     );
 
 Widget defaultButton({
@@ -47,14 +75,17 @@ Widget defaultButton({
 }) =>
     Container(
       width: double.infinity,
-      height: 50,
-      color: Colors.blue,
+      height: 40,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        color: Colors.blue,
+      ),
       child: MaterialButton(
         onPressed: onPressed,
         child: Text(
           toUpperCase ? text.toUpperCase() : text,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 16,
             color: Colors.white,
           ),
         ),
@@ -72,7 +103,7 @@ Future navigateAndFinish(context, widget) => Navigator.pushAndRemoveUntil(
     MaterialPageRoute(
       builder: (context) => widget,
     ),
-        (route) => false);
+    (route) => false);
 
 Future<bool?> toast({
   required String message,
@@ -108,5 +139,3 @@ Color changeToastColor(ToastStates data) {
   }
   return color;
 }
-
-

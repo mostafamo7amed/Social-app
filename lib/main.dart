@@ -1,4 +1,5 @@
-import 'package:bloc/bloc.dart';
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:social_app/modules/login_screen/login_screen.dart';
 import 'package:social_app/shared/components/component.dart';
 import 'package:social_app/shared/network/local/cache_helper.dart';
 import 'package:social_app/shared/observer/blocObserver.dart';
+import 'package:social_app/styles/styles.dart';
 import 'layout/home_screen.dart';
 
 void main() async {
@@ -23,6 +25,7 @@ void main() async {
   }else{
     startWidget = LoginScreen();
   }
+  HttpOverrides.global = MyHttpOverrides();
   runApp(MyApp(startWidget:startWidget ,));
 }
 
@@ -37,11 +40,20 @@ class MyApp extends StatelessWidget {
       create: (BuildContext context) => SocialCubit()..getUser(),
       child: MaterialApp(
         title: 'Social App',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: ThemeMode.light,
         home: startWidget,
       ),
     );
+  }
+
+}
+
+class MyHttpOverrides extends HttpOverrides{
+  @override
+  HttpClient createHttpClient(SecurityContext? context){
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
   }
 }
