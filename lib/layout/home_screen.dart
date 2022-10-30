@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/cubit/social_cubit/cubit.dart';
 import 'package:social_app/cubit/social_cubit/states.dart';
+import 'package:social_app/shared/components/component.dart';
 import 'package:social_app/styles/icons_broken.dart';
 
 import '../modules/new_post_screen/new_post_screen.dart';
@@ -35,7 +36,12 @@ class HomeScreen extends StatelessWidget {
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: cubit.currentIndex,
             onTap: (index) {
-              cubit.changeBottomNav(index);
+              if(index == 2){
+                navigateTo(context, NewPostScreen());
+              }else{
+                cubit.changeBottomNav(index);
+              }
+
             },
             items: const [
               BottomNavigationBarItem(
