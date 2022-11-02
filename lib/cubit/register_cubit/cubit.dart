@@ -38,7 +38,15 @@ class RegisterCubit extends Cubit<RegisterStates> {
     String cover ='https://img.freepik.com/free-photo/vegetables-set-left-black-slate_1220-685.jpg?w=900&t=st=1665313797~exp=1665314397~hmac=a87c3b36b1c57e345a3f5fad35d9f74a1d59d53191d883cfed7cbb9b87ad6724',
   }) {
     UserModel model =
-        UserModel(name: name, email: email, phone: phone,image: image,bio: bio,cover: cover);
+        UserModel(
+            name: name,
+            email: email,
+            phone: phone,
+            image: image,
+            bio: bio,
+            cover: cover,
+            uid: uid,
+        );
     FirebaseFirestore.instance
         .collection('Users')
         .doc(uid)

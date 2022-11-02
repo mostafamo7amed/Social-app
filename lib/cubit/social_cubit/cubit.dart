@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,12 +7,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:social_app/cubit/social_cubit/states.dart';
 import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/new_post_screen/new_post_screen.dart';
-import 'package:social_app/shared/components/component.dart';
+import '../../models/message_model.dart';
 import '../../models/post_model.dart';
 import '../../modules/chats_screen/chats_screen.dart';
 import '../../modules/feeds_screen/feeds_screen.dart';
 import '../../modules/settings_screen/settings_screen.dart';
 import '../../modules/users_screen/users_screen.dart';
+import '../../shared/network/local/cache_helper.dart';
 
 class SocialCubit extends Cubit<SocialStates> {
   SocialCubit() : super(SocialInitState());
@@ -39,13 +39,18 @@ class SocialCubit extends Cubit<SocialStates> {
   ];
 
   void changeBottomNav(int index) {
+    if (index == 1) {
+      getAllUsers();
+    }
     currentIndex = index;
     emit(SocialBottomNavState());
   }
 
   UserModel? userModel;
   void getUser() {
+    String uid = CacheHelper.getData(key: 'uid');
     emit(SocialGetUserLoadingState());
+    print('errrrrrrrrrrrrrrrrrrrr' + CacheHelper.getData(key: 'uid'));
     FirebaseFirestore.instance.collection('Users').doc(uid).get().then((value) {
       userModel = UserModel.fromMap(value.data()!);
       print(userModel!.name);
@@ -136,10 +141,10 @@ class SocialCubit extends Cubit<SocialStates> {
         image: image ??= userModel!.image,
         bio: bio,
         cover: cover ??= userModel!.cover,
-        uid: uid);
+        uid: userModel!.uid);
     FirebaseFirestore.instance
         .collection('Users')
-        .doc(uid)
+        .doc(userModel!.uid)
         .update(model.toMap()!)
         .then((value) {
       emit(SocialUpdateUserSuccessState());
@@ -253,6 +258,7 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialGetPostErrorState());
     });
   }
+
   void getComments() {
     FirebaseFirestore.instance.collection('Posts').get().then((value) {
       for (var element in value.docs) {
@@ -263,7 +269,6 @@ class SocialCubit extends Cubit<SocialStates> {
       }
       emit(SocialGetPostSuccessState());
     });
-
   }
 
   void likePost(String postId) {
@@ -293,6 +298,81 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialCommentPostSuccessState());
     }).catchError((e) {
       emit(SocialCommentPostErrorState());
+    });
+  }
+
+  List<UserModel> users = [];
+  void getAllUsers() {
+    users = [];
+    emit(SocialGetAllUsersLoadingState());
+    FirebaseFirestore.instance.collection('Users').get().then((value) {
+      for (var element in value.docs) {
+        // !=
+        if (element.reference.id != userModel!.uid) {
+          users.add(UserModel.fromMap(element.data()));
+        }
+      }
+      emit(SocialGetAllUsersSuccessState());
+    }).catchError((e) {
+      emit(SocialGetAllUsersErrorState());
+    });
+  }
+
+  void sendMessage({
+    required String receiverId,
+    required String text,
+    required String dateTime,
+  }) {
+    MessageModel messageModel = MessageModel(
+      dateTime: dateTime,
+      receiver: receiverId,
+      sender: userModel!.uid,
+      text: text,
+    );
+    FirebaseFirestore.instance
+        .collection('Users')
+        .doc(userModel!.uid)
+        .collection('Chats')
+        .doc(receiverId)
+        .collection('Messages')
+        .add(messageModel.toMap()!)
+        .then((value) {
+      emit(SocialSendMessageSuccessState());
+    }).catchError((e) {
+      emit(SocialSendMessageErrorState());
+    });
+    FirebaseFirestore.instance
+        .collection('Users')
+        .doc(receiverId)
+        .collection('Chats')
+        .doc(userModel!.uid)
+        .collection('Messages')
+        .add(messageModel.toMap()!)
+        .then((value) {
+      emit(SocialSendMessageSuccessState());
+    }).catchError((e) {
+      emit(SocialSendMessageErrorState());
+    });
+  }
+
+  List<MessageModel> messages = [];
+  void getMessage({
+    required String receiverId,
+  }) {
+    FirebaseFirestore.instance
+        .collection('Users')
+        .doc(userModel!.uid)
+        .collection('Chats')
+        .doc(receiverId)
+        .collection('Messages')
+        .orderBy('dateTime')
+        .snapshots()
+        .listen((event) {
+      messages = [];
+      for (var element in event.docs) {
+        messages.add(MessageModel.fromMap(element.data()));
+      }
+      emit(SocialGetMessageSuccessState());
     });
   }
 }
