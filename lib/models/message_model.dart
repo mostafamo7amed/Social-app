@@ -3,6 +3,7 @@ class MessageModel {
   String? sender;
   String? receiver;
   String? dateTime;
+  String? image;
 
 
   MessageModel({
@@ -10,6 +11,8 @@ class MessageModel {
     this.sender,
     this.receiver,
     this.dateTime,
+    this.image,
+
  });
 
   MessageModel.fromMap(Map<String,dynamic> map){
@@ -17,6 +20,7 @@ class MessageModel {
     dateTime = map['dateTime'];
     receiver = map['receiver'];
     sender = map['sender'];
+    image =map['image'];
   }
 
   Map<String,dynamic>? toMap(){
@@ -25,6 +29,7 @@ class MessageModel {
       'sender':sender,
       'receiver':receiver,
       'dateTime':dateTime,
+      'image':image,
     };
   }
 

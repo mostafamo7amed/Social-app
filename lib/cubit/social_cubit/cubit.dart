@@ -232,7 +232,12 @@ class SocialCubit extends Cubit<SocialStates> {
 
   void removePostImage() {
     postImage = null;
-    emit(SocialRemovePostImageState());
+    emit(SocialRemoveImageState());
+  }
+
+  void removeMessageImage() {
+    messageImage = null;
+    emit(SocialRemoveImageState());
   }
 
   List<PostModel> posts = [];
@@ -242,7 +247,7 @@ class SocialCubit extends Cubit<SocialStates> {
 
   void getPosts() {
     emit(SocialGetPostLoadingState());
-    FirebaseFirestore.instance.collection('Posts').get().then((value) {
+    FirebaseFirestore.instance.collection('Posts').orderBy('dateTime').get().then((value) {
       for (var element in value.docs) {
         element.reference.collection('Likes').get().then((value) {
           likes.add(value.docs.length);
@@ -322,12 +327,14 @@ class SocialCubit extends Cubit<SocialStates> {
     required String receiverId,
     required String text,
     required String dateTime,
+    String image = '',
   }) {
     MessageModel messageModel = MessageModel(
       dateTime: dateTime,
       receiver: receiverId,
       sender: userModel!.uid,
       text: text,
+      image: image,
     );
     FirebaseFirestore.instance
         .collection('Users')
@@ -375,4 +382,45 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialGetMessageSuccessState());
     });
   }
+
+
+
+  File? messageImage;
+  Future<void> getMessageImage({
+    required String receiverId,
+    required String dateTime,
+  }) async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      messageImage = File(pickedFile.path);
+      uploadMessageImage(dateTime: dateTime,receiverId: receiverId,);
+      emit(SocialPikImageSuccessState());
+    } else {
+      print('no image selected');
+      emit(SocialPikImageErrorState());
+    }
+  }
+  uploadMessageImage(
+      {
+        required String receiverId,
+        required String dateTime,
+      }
+      ) {
+    FirebaseStorage.instance
+        .ref()
+        .child('users/${Uri.file(messageImage!.path).pathSegments.last}')
+        .putFile(messageImage!)
+        .then((value) {
+      value.ref.getDownloadURL().then((value) {
+        sendMessage(receiverId: receiverId, text: 'image', dateTime: dateTime,image:value);
+        emit(SocialMessageImageSuccessState());
+      }).catchError((e) {
+        emit(SocialMessageImageErrorState());
+      });
+    }).catchError((error) {
+      emit(SocialMessageImageErrorState());
+      print(error.toString());
+    });
+  }
+
 }

@@ -1,6 +1,7 @@
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:social_app/cubit/social_cubit/cubit.dart';
 import 'package:social_app/cubit/social_cubit/states.dart';
 import 'package:social_app/models/post_model.dart';
@@ -55,8 +56,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                 ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) =>
-                        postBuilder(cubit.posts[index], context,index),
+                    itemBuilder: (context, index) => postBuilder(cubit.posts[index], context,index),
                     separatorBuilder: (context, index) => const SizedBox(
                           height: 5,
                         ),
@@ -462,5 +462,17 @@ class _FeedsScreenState extends State<FeedsScreen> {
         ),
       ),
     );
+  }
+
+
+
+
+  todayDate() {
+    var now = DateTime.now();
+    var formatter = DateFormat('dd-MM-yyyy');
+    String formattedTime = DateFormat('kk:mm:a').format(now);
+    String formattedDate = formatter.format(now);
+    print(formattedTime);
+    print(formattedDate);
   }
 }
